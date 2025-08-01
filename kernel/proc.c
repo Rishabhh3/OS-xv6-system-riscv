@@ -15,6 +15,9 @@ struct proc *initproc;
 int nextpid = 2;
 struct spinlock pid_lock;
 
+struct spinlock proc_lock; // created new
+
+
 extern void forkret(void);
 static void freeproc(struct proc *p);
 
@@ -51,6 +54,9 @@ procinit(void)
   
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
+
+  initlock(&proc_lock, "proc"); // added for proc_lock
+
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
       p->state = UNUSED;
@@ -714,32 +720,3 @@ procdump(void)
     printf("\n");
   }
 }
-// For top command
-uint64  // returns 0 on success
-sys_top(void){
-  uint64 addr;  // use pointer to struct process_info[MAX_PROCESSES]
-  argaddr(0, &addr);
-  
-  struct process_info infos[MAX_PROCESSES];
-  int count = 0;
-
-  struct proc *p;
-  acquire(&pid_lock);
-  for(p = proc; p < &proc[NPROC] && count < MAX_PROCESSES; p++) {
-    if(p->state != UNUSED) {
-      infos[count].pid =p->pid;
-      infos[count].state = p->state;
-      infos[count].ticks = p->rtime;
-      safestrcpy(infos[count].name, p->name, sizeof(p->name));
-      count++;
-
-    }
-  }
-  release(&pid_lock);
-
-  if(copyout(myproc()->pagetable, addr, (char*)infos, sizeof(infos)) < 0)
-    return -1;
-
-  return 0;
-}
-

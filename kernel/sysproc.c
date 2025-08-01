@@ -7,6 +7,40 @@
 #include "proc.h"
 #include "process_info.h"
 
+extern struct proc proc[NPROC];
+extern struct spinlock proc_lock;
+
+
+uint64
+sys_top(void)
+{
+  uint64 addr;
+  if (argaddr(0, &addr) < 0)
+    return -1;
+
+  struct process_info infos[MAX_PROCESSES];  //  Declare the array here
+  int count = 0;
+
+  acquire(&proc_lock);
+  for (struct proc *p = proc; p < &proc[NPROC]; p++) {
+   if (p->state != UNUSED) {
+    infos[count].pid = p->pid;
+    infos[count].state = p->state;
+    infos[count].ticks = p->rtime;
+    safestrcpy(infos[count].name, p->name, sizeof(p->name));
+    count++;
+    if (count >= MAX_PROCESSES) break;
+  }
+}
+release(&proc_lock);
+
+
+  if (copyout(myproc()->pagetable, addr, (char *)infos, count * sizeof(struct process_info)) < 0)
+    return -1;
+
+  return count;  // return number of valid entries
+}
+
 
 uint64
 sys_exit(void)

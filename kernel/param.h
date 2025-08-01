@@ -1,4 +1,4 @@
-#define NPROC        64  // maximum number of processes
+#define NPROC        128  // maximum number of processes -- increased from 64 to 128
 #define NCPU          8  // maximum number of CPUs
 #define NOFILE       16  // open files per process
 #define NFILE       100  // open files per system

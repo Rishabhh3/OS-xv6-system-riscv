@@ -50,4 +50,4 @@ struct process_info {
   char name[16];
 };
 
-int top(struct process_info *infos);  // syscall prototype
+int top(struct process_info *);  // syscall prototype
